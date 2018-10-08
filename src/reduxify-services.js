@@ -15,8 +15,8 @@ function createMethodReducer (name, type, idField) {
     result: null,
     current: null,
     store: {},
-    saved: 0,
-    keys: []
+    keys: [],
+    saved: 0
   }
 
   return {
@@ -122,7 +122,7 @@ function reduxifyService (app, actions, reducers, route, name, idField, sortFunc
         if (typeof sortBy === 'string') sortBy = sortFunctions[sortBy]
         return {
           ...state,
-          keys: [...state.keys].sort(sortBy)
+          keys: [...state.keys].sort(sortBy(state.store))
         }
       },
       [RESET]: (state, action) => {
@@ -134,8 +134,8 @@ function reduxifyService (app, actions, reducers, route, name, idField, sortFunc
           result: null,
           current: null,
           store: {},
-          saved: 0,
-          keys: []
+          keys: [],
+          saved: 0
         }
       }
     }

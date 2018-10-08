@@ -19,12 +19,7 @@ export default function createRestClient (useSockets, apiUrl, auth) {
   }
 
   if (auth) {
-    client.configure(feathers.authentication({
-      path: auth.path || 'api/auth',
-      service: auth.service || 'api/users',
-      storage: window.localStorage,
-      storageKey: auth.storageKey || 'jwt'
-    }))
+    client.configure(feathers.authentication(auth))
   }
 
   return client

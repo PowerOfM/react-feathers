@@ -9,6 +9,7 @@ let client
 let services
 let serviceReducers
 let serviceNames
+let servicesBound = false
 
 export default {
   /**
@@ -35,18 +36,10 @@ export default {
 
     if (authConfig) {
       serviceNames.unshift('auth')
-      reduxifyAuth(client, authInitalize, services, serviceReducers)
+      reduxifyAuth(client, services, serviceReducers, authInitalize)
     }
 
     return services
-  },
-
-  /**
-   * Bind all service action creators with the store's dispatch function
-   * @param  {object} store Redux store
-   */
-  bindServices: (store) => {
-    bindServicesWithDispatch(store.dispatch, services)
   },
 
   /**
@@ -55,9 +48,16 @@ export default {
   getClient: () => client,
 
   /**
-   * Returns the services object, which has all their action-creators (after setup() has been called)
+   * Returns the services object, which has all their action-creators (after setup() has been called). If the store
+   * param is passed and the services have not been bound with the store's dispatch function, the binding takes place.
+   * @param  {object} store Redux store
    */
-  getServices: () => services,
+  getServices: (store) => {
+    if (store && !servicesBound) {
+      bindServicesWithDispatch(store.dispatch, services)
+    }
+    return services
+  },
 
   /**
    * Returns reducers for all services in a object where the keys are service names and the values are their reducers

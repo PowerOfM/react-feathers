@@ -21,9 +21,6 @@ const store = createStore(
   compose(applyMiddleware(...ReactFeathers.getMiddleware()))
 )
 
-// Bind services to store's dispatch
-ReactFeathers.bindServices(store)
-
 // Connect main page with redux
 const ConnectedApp = connect(
   state => ({
@@ -31,7 +28,7 @@ const ConnectedApp = connect(
   }),
   dispatch => ({
     dispatch,
-    services: ReactFeathers.getServices()
+    services: ReactFeathers.getServices(store)
   })
 )(App)
 
