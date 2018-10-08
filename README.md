@@ -1,41 +1,67 @@
-# React Routing
+# React Feathers
 
-> Simple page router for React with minimal dependencies
+> Simplified FeathersJS configuration for React apps
 
-[![NPM](https://img.shields.io/npm/v/@ionx/react-routing.svg)](https://www.npmjs.com/package/@ionx/react-routing) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
+[![NPM](https://img.shields.io/npm/v/@ionx/react-feathers.svg)](https://www.npmjs.com/package/@ionx/react-feathers) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
 ## Install
 
 ```bash
-npm install --save @ionx/react-routing
+npm install --save @ionx/react-feathers
 ```
 
 ## Basic Usage
 
-Simple usage without redux:
-
 ```jsx
 import React from 'react'
 import { render } from 'react-dom'
-import { Router } from 'react-routing'
+import { createStore, compose, applyMiddleware, combineReducers } from 'redux'
+import { Provider, connect } from 'react-redux'
+import ReactFeathers from '@ionx/react-feathers'
 
-const Page1 = props => <h1>Page 1</h1>
-const Page2 = props => <h1>Page 2</h1>
+// Setup Feathers
+ReactFeathers.setup({
+  apiUrl: 'http://localhost:8080',
+  serviceNameMap: {
+    content: '/api/content'
+  }
+})
 
-const App = (
-  <Router routes={{
-    '/uno': Page1,
-    '/dos': Page2,
-    '': '/uno' // Default handler redirects to /uno
-  }} />
+// Create store
+const store = createStore(
+  combineReducers(ReactFeathers.getServiceReducers()),
+  {},
+  compose(applyMiddleware(...ReactFeathers.getMiddleware()))
 )
 
-render(App, document.getElementById('root'))
+// Bind services to store's dispatch
+ReactFeathers.bindServices(store)
+
+// Our main page
+const App = props => <div>Hello</div>
+
+// Connect main page with redux
+const ConnectedApp = connect(
+  state => ({
+    ...state
+  }),
+  dispatch => ({
+    dispatch,
+    services: ReactFeathers.getServices()
+  })
+)(App)
+
+// Mount-point
+const Root = (
+  <Provider store={store}>
+    <ConnectedApp />
+  </Provider>
+)
+
+render(Root, document.getElementById('root'))
 ```
 
-It is recommended to use React-Routing with redux, in which case the LocationReducer should be registered with `createStore`, and the funcion `bindHistory(store)` should be called after the store is created.
-
-For a complete example using Redux, see the `example` folder.
+For a complete example, see the `example` folder.
 
 ## License
 
