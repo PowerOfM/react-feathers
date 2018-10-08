@@ -27,12 +27,7 @@ function createRestClient(useSockets, apiUrl, auth) {
   }
 
   if (auth) {
-    client.configure(feathers.authentication({
-      path: auth.path || 'api/auth',
-      service: auth.service || 'api/users',
-      storage: window.localStorage,
-      storageKey: auth.storageKey || 'jwt'
-    }));
+    client.configure(feathers.authentication(auth));
   }
 
   return client;
@@ -110,8 +105,8 @@ function createMethodReducer(name, type, idField) {
     result: null,
     current: null,
     store: {},
-    saved: 0,
-    keys: []
+    keys: [],
+    saved: 0
   };
 
   return _ref = {}, defineProperty(_ref, name + '_PENDING', function undefined() {
@@ -221,7 +216,7 @@ function reduxifyService(app, actions, reducers, route, name, idField, sortFunct
     var sortBy = action.payload;
     if (typeof sortBy === 'string') sortBy = sortFunctions[sortBy];
     return _extends({}, state, {
-      keys: [].concat(toConsumableArray(state.keys)).sort(sortBy)
+      keys: [].concat(toConsumableArray(state.keys)).sort(sortBy(state.store))
     });
   }), defineProperty(_Object$assign, RESET, function (state, action) {
     if (state.loading) return state;
@@ -231,8 +226,8 @@ function reduxifyService(app, actions, reducers, route, name, idField, sortFunct
       result: null,
       current: null,
       store: {},
-      saved: 0,
-      keys: []
+      keys: [],
+      saved: 0
     });
   }), _Object$assign)), {
     error: null,
@@ -423,6 +418,7 @@ var client = void 0;
 var services = void 0;
 var serviceReducers = void 0;
 var serviceNames = void 0;
+var servicesBound = false;
 
 var index = {
   /**
@@ -457,18 +453,10 @@ var index = {
 
     if (authConfig) {
       serviceNames.unshift('auth');
-      reduxifyAuth(client, authInitalize, services, serviceReducers);
+      reduxifyAuth(client, services, serviceReducers, authInitalize);
     }
 
     return services;
-  },
-
-  /**
-   * Bind all service action creators with the store's dispatch function
-   * @param  {object} store Redux store
-   */
-  bindServices: function bindServices(store) {
-    bindServicesWithDispatch(store.dispatch, services);
   },
 
   /**
@@ -479,9 +467,14 @@ var index = {
   },
 
   /**
-   * Returns the services object, which has all their action-creators (after setup() has been called)
+   * Returns the services object, which has all their action-creators (after setup() has been called). If the store
+   * param is passed and the services have not been bound with the store's dispatch function, the binding takes place.
+   * @param  {object} store Redux store
    */
-  getServices: function getServices() {
+  getServices: function getServices(store) {
+    if (store && !servicesBound) {
+      bindServicesWithDispatch(store.dispatch, services);
+    }
     return services;
   },
 
