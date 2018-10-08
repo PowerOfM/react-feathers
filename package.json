@@ -14,7 +14,8 @@
     "build": "rollup -c rollup.config.js",
     "watch": "rollup -c rollup.config.js -w",
     "example": "cd ./example && npm start",
-    "start": "(npm run watch & npm run example)"
+    "start": "(npm run watch & npm run example)",
+    "prepublish": "npm run build"
   },
   "dependencies": {
     "@feathersjs/client": "^3.7.3",
