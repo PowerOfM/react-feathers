@@ -36,7 +36,7 @@ export default {
 
     if (authConfig) {
       serviceNames.unshift('auth')
-      reduxifyAuth(client, services, serviceReducers, authInitalize)
+      reduxifyAuth(client, services, serviceReducers, authConfig, authInitalize)
     }
 
     return services

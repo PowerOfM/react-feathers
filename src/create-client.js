@@ -19,6 +19,7 @@ export default function createRestClient (useSockets, apiUrl, auth) {
   }
 
   if (auth) {
+    client.set('storage', window.localStorage)
     client.configure(feathers.authentication(auth))
   }
 

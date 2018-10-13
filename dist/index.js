@@ -27,6 +27,7 @@ function createRestClient(useSockets, apiUrl, auth) {
   }
 
   if (auth) {
+    client.set('storage', window.localStorage);
     client.configure(feathers.authentication(auth));
   }
 
@@ -264,20 +265,20 @@ function reduxifyServices(app, actions, reducers, routeNameMap) {
  * @param {object}    app            FeathersJS client instance
  * @param {object}    actions        Object wherein to store the service action-creators
  * @param {object}    reducers       Object wherein to store the service reducers
+ * @param {object}    authConfig     Optional. Object with keys: path, service, and storageKey (all strings)
  * @param {function}  authInitialize Optional. Function that runs after the user has authenticated.
  *                                   Takes in `data`, and should return it afterwards.
  */
-function reduxifyAuth(app, actions, reducers) {
+function reduxifyAuth(app, actions, reducers, authConfig) {
   var _handleActions;
 
-  var authInitialize = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : function (data) {
+  var authInitialize = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : function (data) {
     return data;
   };
 
   // ACTION TYPES
   var AUTHENTICATE = 'auth/AUTHENTICATE';
   var LOGOUT = 'auth/LOGOUT';
-  var USER = 'auth/USER';
 
   // ACTION CREATORS
   actions.auth = {
@@ -289,7 +290,42 @@ function reduxifyAuth(app, actions, reducers) {
       };
     }),
     logout: reduxActions.createAction(LOGOUT),
-    user: reduxActions.createAction(USER)
+    checkJWT: function checkJWT(jwt) {
+      // Try to fetch from local storage
+      if (!jwt) {
+        jwt = app.get('storage').getItem(authConfig.storageKey || 'feathers-jwt');
+      }
+
+      if (!jwt) return false;
+
+      var decoded = void 0;
+      try {
+        var parts = jwt.split('.');
+        decoded = window.atob(parts[1]);
+        decoded = JSON.parse(decoded);
+      } catch (e) {
+        return false;
+      }
+
+      // Check expiration date
+      if (!decoded.exp || decoded.exp < Date.now()) {
+        return false;
+      }
+
+      // Update passport, fetch the user, then simulate authenticate
+      return app.passport.setJWT({ accessToken: jwt }).then(function () {
+        return actions[authConfig.reduxService || 'users'].get(decoded.userId);
+      }).then(function (result) {
+        var user = result.value;
+        return {
+          type: AUTHENTICATE + '_FULFILLED',
+          payload: {
+            accessToken: jwt,
+            user: user
+          }
+        };
+      });
+    }
 
     // REDUCER
   };reducers.auth = reduxActions.handleActions((_handleActions = {}, defineProperty(_handleActions, AUTHENTICATE + '_PENDING', function undefined(state, action) {
@@ -354,21 +390,6 @@ function reduxifyAuth(app, actions, reducers) {
       // Ignore the result if an authentication has been started
       ignorePendingAuth: state.isLoading
     });
-  }), defineProperty(_handleActions, USER, function (state, action) {
-    var user = state.user;
-    if (user) {
-      user = _extends({}, user, action.payload);
-    }
-
-    return _extends({}, state, {
-      errors: null,
-      loading: null,
-      valid: false,
-      admin: user.admin,
-      user: user,
-      // A logout may be dispatched between the authentication being started and completed
-      ignorePendingAuth: false
-    });
   }), _handleActions), {
     errors: null,
     loading: false,
@@ -395,18 +416,18 @@ function bindServicesWithDispatch (dispatch, services, targetActions) {
   // default targets from feathers-redux
   'find', 'get', 'create', 'patch', 'remove', 'reset', 'setCurrent', 'sort',
   // couple more optional ones in case feathers-reduxify-authentication is being used
-  'authenticate', 'logout'];
+  'authenticate', 'logout', 'checkJWT'];
 
   var serviceNames = Object.keys(services);
   // map over the services object to get every service
-  serviceNames.forEach(function (_name) {
-    var methodNames = Object.keys(services[_name]);
+  serviceNames.forEach(function (name) {
+    var methodNames = Object.keys(services[name]);
 
     // map over every method in the service
-    methodNames.forEach(function (_method) {
+    methodNames.forEach(function (method) {
       // if method is in targeted actions then replace it with bounded method
-      if (targetActions.includes(_method)) {
-        services[_name][_method] = redux.bindActionCreators(services[_name][_method], dispatch);
+      if (targetActions.indexOf(method) >= 0) {
+        services[name][method] = redux.bindActionCreators(services[name][method], dispatch);
       }
     });
   });
@@ -453,7 +474,7 @@ var index = {
 
     if (authConfig) {
       serviceNames.unshift('auth');
-      reduxifyAuth(client, services, serviceReducers, authInitalize);
+      reduxifyAuth(client, services, serviceReducers, authConfig, authInitalize);
     }
 
     return services;

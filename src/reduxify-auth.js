@@ -5,14 +5,14 @@ import { createAction, handleActions } from 'redux-actions'
  * @param {object}    app            FeathersJS client instance
  * @param {object}    actions        Object wherein to store the service action-creators
  * @param {object}    reducers       Object wherein to store the service reducers
+ * @param {object}    authConfig     Optional. Object with keys: path, service, and storageKey (all strings)
  * @param {function}  authInitialize Optional. Function that runs after the user has authenticated.
  *                                   Takes in `data`, and should return it afterwards.
  */
-export default function reduxifyAuth (app, actions, reducers, authInitialize = (data => data)) {
+export default function reduxifyAuth (app, actions, reducers, authConfig, authInitialize = (data => data)) {
   // ACTION TYPES
   const AUTHENTICATE = 'auth/AUTHENTICATE'
   const LOGOUT = 'auth/LOGOUT'
-  const USER = 'auth/USER'
 
   // ACTION CREATORS
   actions.auth = {
@@ -24,7 +24,42 @@ export default function reduxifyAuth (app, actions, reducers, authInitialize = (
       })
     ),
     logout: createAction(LOGOUT),
-    user: createAction(USER)
+    checkJWT: jwt => {
+      // Try to fetch from local storage
+      if (!jwt) {
+        jwt = app.get('storage').getItem(authConfig.storageKey || 'feathers-jwt')
+      }
+
+      if (!jwt) return false
+
+      let decoded
+      try {
+        let parts = jwt.split('.')
+        decoded = window.atob(parts[1])
+        decoded = JSON.parse(decoded)
+      } catch (e) {
+        return false
+      }
+
+      // Check expiration date
+      if (!decoded.exp || decoded.exp < Date.now()) {
+        return false
+      }
+
+      // Update passport, fetch the user, then simulate authenticate
+      return app.passport.setJWT({ accessToken: jwt })
+        .then(() => actions[authConfig.reduxService || 'users'].get(decoded.userId))
+        .then(result => {
+          const user = result.value
+          return {
+            type: AUTHENTICATE + '_FULFILLED',
+            payload: {
+              accessToken: jwt,
+              user
+            }
+          }
+        })
+    }
   }
 
   // REDUCER
@@ -102,24 +137,6 @@ export default function reduxifyAuth (app, actions, reducers, authInitialize = (
           token: null,
           // Ignore the result if an authentication has been started
           ignorePendingAuth: state.isLoading
-        })
-      },
-
-      [USER]: (state, action) => {
-        let user = state.user
-        if (user) {
-          user = { ...user, ...action.payload }
-        }
-
-        return ({
-          ...state,
-          errors: null,
-          loading: null,
-          valid: false,
-          admin: user.admin,
-          user: user,
-          // A logout may be dispatched between the authentication being started and completed
-          ignorePendingAuth: false
         })
       }
     },

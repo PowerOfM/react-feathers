@@ -24,20 +24,21 @@ export default function (dispatch, services, targetActions) {
     'sort',
     // couple more optional ones in case feathers-reduxify-authentication is being used
     'authenticate',
-    'logout'
+    'logout',
+    'checkJWT'
   ]
 
   const serviceNames = Object.keys(services)
   // map over the services object to get every service
-  serviceNames.forEach(_name => {
-    const methodNames = Object.keys(services[_name])
+  serviceNames.forEach(name => {
+    const methodNames = Object.keys(services[name])
 
     // map over every method in the service
-    methodNames.forEach(_method => {
+    methodNames.forEach(method => {
       // if method is in targeted actions then replace it with bounded method
-      if (targetActions.includes(_method)) {
-        services[_name][_method] = bindActionCreators(
-          services[_name][_method],
+      if (targetActions.indexOf(method) >= 0) {
+        services[name][method] = bindActionCreators(
+          services[name][method],
           dispatch
         )
       }
