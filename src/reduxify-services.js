@@ -43,7 +43,7 @@ function createMethodReducer (name, type, idField) {
         case 'find':
           ret.current = null
           if (result && Array.isArray(result)) {
-            result.reduce((acc, val) => {
+            ret.store = result.reduce((acc, val) => {
               if (!val[idField]) console.warn('Received object without valid idField')
               else acc[val[idField]] = val
               return acc
