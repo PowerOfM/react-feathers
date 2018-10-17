@@ -42,11 +42,15 @@ function createMethodReducer (name, type, idField) {
       switch (type) {
         case 'find':
           ret.current = null
-          ret.store = result.reduce((acc, val) => {
-            if (!val[idField]) console.warn('Received object without valid idField')
-            else acc[val[idField]] = val
-            return acc
-          }, {})
+          if (result && Array.isArray(result)) {
+            result.reduce((acc, val) => {
+              if (!val[idField]) console.warn('Received object without valid idField')
+              else acc[val[idField]] = val
+              return acc
+            }, {})
+          } else {
+            ret.store = {}
+          }
           break
 
         case 'get':
