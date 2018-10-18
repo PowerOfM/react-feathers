@@ -452,7 +452,7 @@ var index = {
    * @param  {string}   options.apiUrl          URL to the API server
    * @param  {object}   options.serviceNameMap  Object with serviceName as the keys, and remote service-url as the values
    * @param  {object}   options.authConfig      Optional. Object with keys: path, service, and storageKey (all strings)
-   * @param  {function} options.authInitalize   Optional. Function that runs after the user has authenticated. Takes in
+   * @param  {function} options.authInitialize  Optional. Function that runs after the user has authenticated. Takes in
    *                                            `data`, and should return it afterwards.
    * @param  {string}   options.idField         Optional. Field returned by server that has the `id` value. Default 'id'
    * @param  {object}   options.sortFunctions   Optional. Object with the name of a sort function as the key and a
@@ -465,7 +465,7 @@ var index = {
         apiUrl = _ref.apiUrl,
         serviceNameMap = _ref.serviceNameMap,
         authConfig = _ref.authConfig,
-        authInitalize = _ref.authInitalize,
+        authInitialize = _ref.authInitialize,
         idField = _ref.idField,
         sortFunctions = _ref.sortFunctions;
 
@@ -478,7 +478,7 @@ var index = {
 
     if (authConfig) {
       serviceNames.unshift('auth');
-      reduxifyAuth(client, services, serviceReducers, authConfig, authInitalize);
+      reduxifyAuth(client, services, serviceReducers, authConfig, authInitialize);
     }
 
     return services;

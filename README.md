@@ -79,7 +79,7 @@ Initial setup function that must be called before using any other function in th
   + `service`: service url for the users service, ex: `api/users`
   + `storage`: a WebStorage-compatible object to enable automatic storage on the client, ex: `window.localStorage`
   + `storageKey`: service url for the users service, ex: `myapp-jwt`
-- **`authInitalize`** (_Function_) _OPTIONAL_: Function that runs after the user has authenticated. Takes in `data`, and should return it after all operations have compete, such as after a promise resolves.
+- **`authInitialize`** (_Function_) _OPTIONAL_: Function that runs after the user has authenticated. Takes in `data`, and should return it after all operations have compete, such as after a promise resolves.
 - **`idField`** (_String_) _OPTIONAL_: Field returned by server that has the `id` value. Default: `id`.
 - **`sortFunctions`** (_Object_) _OPTIONAL_: Custom sorting functions stored by name in an object. These functions should take in the service-store and return a valid sort function. Example:
     ```
