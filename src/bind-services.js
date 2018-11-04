@@ -24,8 +24,7 @@ export default function (dispatch, services, targetActions) {
     'sort',
     // couple more optional ones in case feathers-reduxify-authentication is being used
     'authenticate',
-    'logout',
-    'checkJWT'
+    'logout'
   ]
 
   const serviceNames = Object.keys(services)

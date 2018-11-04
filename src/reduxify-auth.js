@@ -32,33 +32,7 @@ export default function reduxifyAuth (app, actions, reducers, authConfig, authIn
 
       if (!jwt) return false
 
-      let decoded
-      try {
-        let parts = jwt.split('.')
-        decoded = window.atob(parts[1])
-        decoded = JSON.parse(decoded)
-      } catch (e) {
-        return false
-      }
-
-      // Check expiration date
-      if (!decoded.exp || decoded.exp < Date.now()) {
-        return false
-      }
-
-      // Update passport, fetch the user, then simulate authenticate
-      return app.passport.setJWT({ accessToken: jwt })
-        .then(() => actions[authConfig.reduxService || 'users'].get(decoded.userId))
-        .then(result => {
-          const user = result.value
-          return {
-            type: AUTHENTICATE + '_FULFILLED',
-            payload: {
-              accessToken: jwt,
-              user
-            }
-          }
-        })
+      return actions.auth.authenticate({ strategy: 'jwt', jwt })
     }
   }
 

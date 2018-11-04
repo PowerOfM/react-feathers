@@ -302,33 +302,7 @@ function reduxifyAuth(app, actions, reducers, authConfig) {
 
       if (!jwt) return false;
 
-      var decoded = void 0;
-      try {
-        var parts = jwt.split('.');
-        decoded = window.atob(parts[1]);
-        decoded = JSON.parse(decoded);
-      } catch (e) {
-        return false;
-      }
-
-      // Check expiration date
-      if (!decoded.exp || decoded.exp < Date.now()) {
-        return false;
-      }
-
-      // Update passport, fetch the user, then simulate authenticate
-      return app.passport.setJWT({ accessToken: jwt }).then(function () {
-        return actions[authConfig.reduxService || 'users'].get(decoded.userId);
-      }).then(function (result) {
-        var user = result.value;
-        return {
-          type: AUTHENTICATE + '_FULFILLED',
-          payload: {
-            accessToken: jwt,
-            user: user
-          }
-        };
-      });
+      return actions.auth.authenticate({ strategy: 'jwt', jwt: jwt });
     }
 
     // REDUCER
@@ -420,7 +394,7 @@ function bindServicesWithDispatch (dispatch, services, targetActions) {
   // default targets from feathers-redux
   'find', 'get', 'create', 'patch', 'remove', 'reset', 'setCurrent', 'sort',
   // couple more optional ones in case feathers-reduxify-authentication is being used
-  'authenticate', 'logout', 'checkJWT'];
+  'authenticate', 'logout'];
 
   var serviceNames = Object.keys(services);
   // map over the services object to get every service
