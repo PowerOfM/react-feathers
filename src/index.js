@@ -17,6 +17,8 @@ export default {
    * @param  {boolean}  options.useSockets      When true, a socket.io connection to the API server will be created
    * @param  {string}   options.apiUrl          URL to the API server
    * @param  {object}   options.serviceNameMap  Object with serviceName as the keys, and remote service-url as the values
+   * @param  {object}   options.utilNameMap     Object with utilName as the keys, and remote util-url as the values.
+   *                                            Utils are defined as services that have no store (local cache)
    * @param  {object}   options.authConfig      Optional. Object with keys: path, service, and storageKey (all strings)
    * @param  {function} options.authInitialize  Optional. Function that runs after the user has authenticated. Takes in
    *                                            `data`, and should return it afterwards.
@@ -26,13 +28,18 @@ export default {
    *                                            the value. Ex: `store => (a, b) => store[a].name.localeCompare(store[b].name)`
    * @return {object}   An object with all serviceNames mapped to objects with their action creators.
    */
-  setup: ({ useSockets, apiUrl, serviceNameMap, authConfig, authInitialize, idField, sortFunctions }) => {
+  setup: ({ useSockets, apiUrl, serviceNameMap, utilNameMap, authConfig, authInitialize, idField, sortFunctions }) => {
     client = createClient(useSockets, apiUrl, authConfig)
 
     services = {}
     serviceReducers = {}
     serviceNames = Object.keys(serviceNameMap)
     reduxifyServices(client, services, serviceReducers, serviceNameMap, idField, sortFunctions)
+
+    if (utilNameMap) {
+      serviceNames.push(Object.keys(utilNameMap))
+      reduxifyUtils(client, services, utilNameMap)
+    }
 
     if (authConfig) {
       serviceNames.unshift('auth')
