@@ -3,6 +3,7 @@ import promiseMiddleware from 'redux-promise-middleware'
 import createClient from './create-client'
 import reduxifyServices from './reduxify-services'
 import reduxifyAuth from './reduxify-auth'
+import reduxifyUtils from './reduxify-utils'
 import bindServicesWithDispatch from './bind-services'
 
 let client

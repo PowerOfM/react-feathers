@@ -378,6 +378,45 @@ function reduxifyAuth(app, actions, reducers, authConfig) {
   });
 }
 
+function reduxifyUtil(app, actions, route, name) {
+  var SERVICE_NAME = 'services/' + name.toUpperCase() + '_';
+
+  var service = app.service(route);
+  if (!service) throw new Error('Could not find service ' + route);
+
+  // Action types
+  actions[name] = {
+    find: reduxActions.createAction(SERVICE_NAME + 'FIND', function (params) {
+      return { promise: service.find(params) };
+    }),
+    get: reduxActions.createAction(SERVICE_NAME + 'GET', function (id, params) {
+      return { promise: service.get(id, params) };
+    }),
+    create: reduxActions.createAction(SERVICE_NAME + 'CREATE', function (data, params) {
+      return { promise: service.create(data, params) };
+    }),
+    patch: reduxActions.createAction(SERVICE_NAME + 'PATCH', function (id, data, params) {
+      return { promise: service.patch(id, data, params) };
+    }),
+    remove: reduxActions.createAction(SERVICE_NAME + 'REMOVE', function (id, params) {
+      return { promise: service.remove(id, params) };
+    })
+  };
+}
+
+/**
+ * Creates redux bindings (action-creators and reducers) for each service
+ * @param  {object} app           FeathersJS client instance
+ * @param  {object} actions       Object wherein to store the service action-creators
+ * @param  {object} routeNameMap  Object with the following format: { serviceName: 'api/service-url', ... }
+ */
+function reduxifyUtils(app, actions, routeNameMap) {
+  var names = Object.keys(routeNameMap);
+  for (var i = 0; i < names.length; i++) {
+    reduxifyUtil(app, actions, routeNameMap[names[i]], names[i]);
+  }
+}
+
 /**
  * Method to bind a given dispatch function with the passed services.
  *
@@ -425,6 +464,8 @@ var index = {
    * @param  {boolean}  options.useSockets      When true, a socket.io connection to the API server will be created
    * @param  {string}   options.apiUrl          URL to the API server
    * @param  {object}   options.serviceNameMap  Object with serviceName as the keys, and remote service-url as the values
+   * @param  {object}   options.utilNameMap     Object with utilName as the keys, and remote util-url as the values.
+   *                                            Utils are defined as services that have no store (local cache)
    * @param  {object}   options.authConfig      Optional. Object with keys: path, service, and storageKey (all strings)
    * @param  {function} options.authInitialize  Optional. Function that runs after the user has authenticated. Takes in
    *                                            `data`, and should return it afterwards.
@@ -438,6 +479,7 @@ var index = {
     var useSockets = _ref.useSockets,
         apiUrl = _ref.apiUrl,
         serviceNameMap = _ref.serviceNameMap,
+        utilNameMap = _ref.utilNameMap,
         authConfig = _ref.authConfig,
         authInitialize = _ref.authInitialize,
         idField = _ref.idField,
@@ -449,6 +491,11 @@ var index = {
     serviceReducers = {};
     serviceNames = Object.keys(serviceNameMap);
     reduxifyServices(client, services, serviceReducers, serviceNameMap, idField, sortFunctions);
+
+    if (utilNameMap) {
+      serviceNames.push(Object.keys(utilNameMap));
+      reduxifyUtils(client, services, utilNameMap);
+    }
 
     if (authConfig) {
       serviceNames.unshift('auth');

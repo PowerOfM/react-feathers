@@ -19,7 +19,7 @@ export default class Home extends React.Component {
         <h1>Suppliers</h1>
         <button onClick={() => this.loadSuppliers()}>Refresh</button>
 
-        <table style={{width: '100%', textAlign: 'left'}}>
+        <table style={{ width: '100%', textAlign: 'left' }}>
           <thead>
             <tr>
               <th>ID</th>
