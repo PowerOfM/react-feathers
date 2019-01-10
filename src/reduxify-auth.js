@@ -11,8 +11,8 @@ import { createAction, handleActions } from 'redux-actions'
  */
 export default function reduxifyAuth (app, actions, reducers, authConfig, authInitialize = (data => data)) {
   // ACTION TYPES
-  const AUTHENTICATE = 'auth/AUTHENTICATE'
-  const LOGOUT = 'auth/LOGOUT'
+  const AUTHENTICATE = app.name + '/auth/AUTHENTICATE'
+  const LOGOUT = app.name + '/auth/LOGOUT'
 
   // ACTION CREATORS
   actions.auth = {

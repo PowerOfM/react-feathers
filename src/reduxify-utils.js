@@ -1,7 +1,7 @@
 import { createAction } from 'redux-actions'
 
 function reduxifyUtil (app, actions, route, name) {
-  const SERVICE_NAME = `services/${name.toUpperCase()}_`
+  const SERVICE_NAME = `${app.name}/services/${name.toUpperCase()}_`
 
   const service = app.service(route)
   if (!service) throw new Error(`Could not find service ${route}`)

@@ -9,7 +9,7 @@ import io from 'socket.io-client'
  * @param  {object}  auth       Optional. Object with keys: path, service, and storageKey (all strings)
  * @return {object}  The new FeathersJS client instance
  */
-export default function createRestClient (useSockets, apiUrl, auth) {
+export default function createClient (name, useSockets, apiUrl, auth) {
   const client = feathers()
 
   if (useSockets) {
@@ -23,5 +23,7 @@ export default function createRestClient (useSockets, apiUrl, auth) {
     client.configure(feathers.authentication(auth))
   }
 
+  client.name = name
+  console.log('name', name)
   return client
 }

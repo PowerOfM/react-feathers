@@ -7,18 +7,24 @@ import App from './app'
 import './index.css'
 
 // Setup Feathers
-ReactFeathers.setup({
+const feathers = new ReactFeathers({
   apiUrl: 'http://localhost:9020',
   serviceNameMap: {
     suppliers: '/api/suppliers'
   }
 })
 
+// Logger
+const logger = store => next => action => {
+  console.info('>> ' + action.type, action.payload)
+  return next(action)
+}
+
 // Create store
 const store = createStore(
-  combineReducers(ReactFeathers.getServiceReducers()),
+  combineReducers(feathers.getServiceReducers()),
   {},
-  compose(applyMiddleware(...ReactFeathers.getMiddleware()))
+  compose(applyMiddleware(...feathers.getMiddleware(), logger))
 )
 
 // Connect main page with redux
@@ -28,7 +34,7 @@ const ConnectedApp = connect(
   }),
   dispatch => ({
     dispatch,
-    services: ReactFeathers.getServices(store)
+    services: feathers.getServices(store)
   })
 )(App)
 

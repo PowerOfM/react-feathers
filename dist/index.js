@@ -7,7 +7,6 @@ var axios = _interopDefault(require('axios'));
 var io = _interopDefault(require('socket.io-client'));
 var reduxActions = require('redux-actions');
 var redux = require('redux');
-var thunk = _interopDefault(require('redux-thunk'));
 var promiseMiddleware = _interopDefault(require('redux-promise-middleware'));
 
 /**
@@ -17,7 +16,7 @@ var promiseMiddleware = _interopDefault(require('redux-promise-middleware'));
  * @param  {object}  auth       Optional. Object with keys: path, service, and storageKey (all strings)
  * @return {object}  The new FeathersJS client instance
  */
-function createRestClient(useSockets, apiUrl, auth) {
+function createClient(name, useSockets, apiUrl, auth) {
   var client = feathers();
 
   if (useSockets) {
@@ -31,8 +30,34 @@ function createRestClient(useSockets, apiUrl, auth) {
     client.configure(feathers.authentication(auth));
   }
 
+  client.name = name;
+  console.log('name', name);
   return client;
 }
+
+var classCallCheck = function (instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+};
+
+var createClass = function () {
+  function defineProperties(target, props) {
+    for (var i = 0; i < props.length; i++) {
+      var descriptor = props[i];
+      descriptor.enumerable = descriptor.enumerable || false;
+      descriptor.configurable = true;
+      if ("value" in descriptor) descriptor.writable = true;
+      Object.defineProperty(target, descriptor.key, descriptor);
+    }
+  }
+
+  return function (Constructor, protoProps, staticProps) {
+    if (protoProps) defineProperties(Constructor.prototype, protoProps);
+    if (staticProps) defineProperties(Constructor, staticProps);
+    return Constructor;
+  };
+}();
 
 var defineProperty = function (obj, key, value) {
   if (key in obj) {
@@ -175,20 +200,20 @@ function createMethodReducer(name, type, idField) {
 function reduxifyService(app, actions, reducers, route, name, idField, sortFunctions) {
   var _Object$assign;
 
-  var SERVICE_NAME = 'services/' + name.toUpperCase() + '_';
+  var serviceName = app.name + '/services/' + name.toUpperCase() + '_';
 
   var service = app.service(route);
   if (!service) throw new Error('Could not find service ' + route);
 
   // Action types
-  var FIND = SERVICE_NAME + 'FIND';
-  var GET = SERVICE_NAME + 'GET';
-  var CREATE = SERVICE_NAME + 'CREATE';
-  var PATCH = SERVICE_NAME + 'PATCH';
-  var REMOVE = SERVICE_NAME + 'REMOVE';
-  var RESET = SERVICE_NAME + 'RESET';
-  var SET_CURRENT = SERVICE_NAME + 'SET_CURRENT';
-  var SORT = SERVICE_NAME + 'SORT';
+  var FIND = serviceName + 'FIND';
+  var GET = serviceName + 'GET';
+  var CREATE = serviceName + 'CREATE';
+  var PATCH = serviceName + 'PATCH';
+  var REMOVE = serviceName + 'REMOVE';
+  var RESET = serviceName + 'RESET';
+  var SET_CURRENT = serviceName + 'SET_CURRENT';
+  var SORT = serviceName + 'SORT';
 
   actions[name] = {
     find: reduxActions.createAction(FIND, function (params) {
@@ -281,8 +306,8 @@ function reduxifyAuth(app, actions, reducers, authConfig) {
   };
 
   // ACTION TYPES
-  var AUTHENTICATE = 'auth/AUTHENTICATE';
-  var LOGOUT = 'auth/LOGOUT';
+  var AUTHENTICATE = app.name + '/auth/AUTHENTICATE';
+  var LOGOUT = app.name + '/auth/LOGOUT';
 
   // ACTION CREATORS
   actions.auth = {
@@ -379,7 +404,7 @@ function reduxifyAuth(app, actions, reducers, authConfig) {
 }
 
 function reduxifyUtil(app, actions, route, name) {
-  var SERVICE_NAME = 'services/' + name.toUpperCase() + '_';
+  var SERVICE_NAME = app.name + '/services/' + name.toUpperCase() + '_';
 
   var service = app.service(route);
   if (!service) throw new Error('Could not find service ' + route);
@@ -452,15 +477,16 @@ function bindServicesWithDispatch (dispatch, services, targetActions) {
   return services;
 }
 
-var client = void 0;
-var services = void 0;
-var serviceReducers = void 0;
-var serviceNames = void 0;
-var servicesBound = false;
+// let client
+// let services
+// let serviceReducers
+// let serviceNames
+// let servicesBound = false
 
-var index = {
+var ReactFeathers = function () {
   /**
    * Creates the FeathersJS client and configures auth and services
+   * @param  {boolean}  options.name            Specify a name for this feathers connection (defaults to 'api').
    * @param  {boolean}  options.useSockets      When true, a socket.io connection to the API server will be created
    * @param  {string}   options.apiUrl          URL to the API server
    * @param  {object}   options.serviceNameMap  Object with serviceName as the keys, and remote service-url as the values
@@ -475,8 +501,9 @@ var index = {
    *                                            the value. Ex: `store => (a, b) => store[a].name.localeCompare(store[b].name)`
    * @return {object}   An object with all serviceNames mapped to objects with their action creators.
    */
-  setup: function setup(_ref) {
-    var useSockets = _ref.useSockets,
+  function ReactFeathers(_ref) {
+    var name = _ref.name,
+        useSockets = _ref.useSockets,
         apiUrl = _ref.apiUrl,
         serviceNameMap = _ref.serviceNameMap,
         utilNameMap = _ref.utilNameMap,
@@ -484,62 +511,78 @@ var index = {
         authInitialize = _ref.authInitialize,
         idField = _ref.idField,
         sortFunctions = _ref.sortFunctions;
+    classCallCheck(this, ReactFeathers);
 
-    client = createRestClient(useSockets, apiUrl, authConfig);
+    this.name = name || 'api';
+    this.client = createClient(this.name, useSockets, apiUrl, authConfig);
 
-    services = {};
-    serviceReducers = {};
-    serviceNames = Object.keys(serviceNameMap);
-    reduxifyServices(client, services, serviceReducers, serviceNameMap, idField, sortFunctions);
+    this.services = {};
+    this.serviceReducers = {};
+    this.serviceNames = Object.keys(serviceNameMap);
+    reduxifyServices(this.client, this.services, this.serviceReducers, serviceNameMap, idField, sortFunctions);
 
     if (utilNameMap) {
-      serviceNames.push(Object.keys(utilNameMap));
-      reduxifyUtils(client, services, utilNameMap);
+      this.serviceNames.push(Object.keys(utilNameMap));
+      reduxifyUtils(this.client, this.services, utilNameMap);
     }
 
     if (authConfig) {
-      serviceNames.unshift('auth');
-      reduxifyAuth(client, services, serviceReducers, authConfig, authInitialize);
+      this.serviceNames.unshift('auth');
+      reduxifyAuth(this.client, this.services, this.serviceReducers, authConfig, authInitialize);
     }
-
-    return services;
-  },
+  }
 
   /**
    * Returns the FeathersJS client instance (after setup() has been called)
    */
-  getClient: function getClient() {
-    return client;
-  },
 
-  /**
-   * Returns the services object, which has all their action-creators (after setup() has been called). If the store
-   * param is passed and the services have not been bound with the store's dispatch function, the binding takes place.
-   * @param  {object} store Redux store
-   */
-  getServices: function getServices(store) {
-    if (store && !servicesBound) {
-      bindServicesWithDispatch(store.dispatch, services);
+
+  createClass(ReactFeathers, [{
+    key: 'getClient',
+    value: function getClient() {
+      return this.client;
     }
-    return services;
-  },
 
-  /**
-   * Returns reducers for all services in a object where the keys are service names and the values are their reducers
-   */
-  getServiceReducers: function getServiceReducers() {
-    return serviceReducers;
-  },
+    /**
+     * Returns the services object, which has all their action-creators (after setup() has been called). If the store
+     * param is passed and the services have not been bound with the store's dispatch function, the binding takes place.
+     * @param  {object} store Redux store
+     */
 
-  /**
-   * Helper function for redux store. Returns an array with reduxThunk and reduxPromimseMiddleware, which are needed to
-   * process the events from the services. If you are already using these two middleware libraries, you do not need to
-   * use this function.
-   */
-  getMiddleware: function getMiddleware() {
-    return [thunk, promiseMiddleware()];
-  }
-};
+  }, {
+    key: 'getServices',
+    value: function getServices(store) {
+      if (store && !this.servicesBound) {
+        bindServicesWithDispatch(store.dispatch, this.services);
+        this.servicesBound = true;
+      }
+      return this.services;
+    }
 
-module.exports = index;
+    /**
+     * Returns reducers for all services in a object where the keys are service names and the values are their reducers
+     */
+
+  }, {
+    key: 'getServiceReducers',
+    value: function getServiceReducers() {
+      return this.serviceReducers;
+    }
+
+    /**
+     * Helper function for redux store. Returns an array with reduxThunk and reduxPromimseMiddleware, which are needed to
+     * process the events from the services. If you are already using these two middleware libraries, you do not need to
+     * use this function.
+     */
+
+  }, {
+    key: 'getMiddleware',
+    value: function getMiddleware() {
+      return [promiseMiddleware()];
+    }
+  }]);
+  return ReactFeathers;
+}();
+
+module.exports = ReactFeathers;
 //# sourceMappingURL=index.js.map

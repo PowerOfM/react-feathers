@@ -20,7 +20,7 @@ import { Provider, connect } from 'react-redux'
 import ReactFeathers from '@ionx/react-feathers'
 
 // STEP 1: Setup Feathers
-ReactFeathers.setup({
+const feathres = new ReactFeathers({
   apiUrl: 'http://localhost:8080',
   serviceNameMap: {
     content: '/api/content'
@@ -29,9 +29,9 @@ ReactFeathers.setup({
 
 // STEP 2: Create store, and include ReactFeathers' serviceReducers and middleware
 const store = createStore(
-  combineReducers(ReactFeathers.getServiceReducers()),
+  combineReducers(feathers.getServiceReducers()),
   {},
-  compose(applyMiddleware(...ReactFeathers.getMiddleware()))
+  compose(applyMiddleware(...feathers.getMiddleware()))
 )
 
 // Our main page
@@ -44,7 +44,7 @@ const ConnectedApp = connect(
   }),
   dispatch => ({
     dispatch,
-    services: ReactFeathers.getServices(store)
+    services: feathers.getServices(store)
   })
 )(App)
 

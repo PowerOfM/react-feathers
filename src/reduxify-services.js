@@ -80,20 +80,20 @@ function createMethodReducer (name, type, idField) {
 }
 
 function reduxifyService (app, actions, reducers, route, name, idField, sortFunctions) {
-  const SERVICE_NAME = `services/${name.toUpperCase()}_`
+  const serviceName = `${app.name}/services/${name.toUpperCase()}_`
 
   const service = app.service(route)
   if (!service) throw new Error(`Could not find service ${route}`)
 
   // Action types
-  const FIND = `${SERVICE_NAME}FIND`
-  const GET = `${SERVICE_NAME}GET`
-  const CREATE = `${SERVICE_NAME}CREATE`
-  const PATCH = `${SERVICE_NAME}PATCH`
-  const REMOVE = `${SERVICE_NAME}REMOVE`
-  const RESET = `${SERVICE_NAME}RESET`
-  const SET_CURRENT = `${SERVICE_NAME}SET_CURRENT`
-  const SORT = `${SERVICE_NAME}SORT`
+  const FIND = serviceName + 'FIND'
+  const GET = serviceName + 'GET'
+  const CREATE = serviceName + 'CREATE'
+  const PATCH = serviceName + 'PATCH'
+  const REMOVE = serviceName + 'REMOVE'
+  const RESET = serviceName + 'RESET'
+  const SET_CURRENT = serviceName + 'SET_CURRENT'
+  const SORT = serviceName + 'SORT'
 
   actions[name] = {
     find: createAction(FIND, (params) => ({ promise: service.find(params) })),
