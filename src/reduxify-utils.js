@@ -1,4 +1,4 @@
-import { createAction, handleActions } from 'redux-actions'
+import { createAction } from 'redux-actions'
 
 function reduxifyUtil (app, actions, route, name) {
   const SERVICE_NAME = `services/${name.toUpperCase()}_`
