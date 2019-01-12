@@ -314,7 +314,7 @@ function reduxifyAuth(app, actions, reducers, authConfig) {
     // Note: action.payload in reducer will have the value of .data below
     authenticate: reduxActions.createAction(AUTHENTICATE, function (p) {
       return {
-        promise: app.authenticate(p).then(authInitialize),
+        promise: app.authenticate(p).then(authInitialize, actions),
         data: undefined
       };
     }),

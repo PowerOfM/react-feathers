@@ -19,7 +19,7 @@ export default function reduxifyAuth (app, actions, reducers, authConfig, authIn
     // Note: action.payload in reducer will have the value of .data below
     authenticate: createAction(
       AUTHENTICATE, (p) => ({
-        promise: app.authenticate(p).then(authInitialize),
+        promise: app.authenticate(p).then(authInitialize, actions),
         data: undefined
       })
     ),
