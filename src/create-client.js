@@ -4,6 +4,7 @@ import io from 'socket.io-client'
 
 /**
  * Creates a FeathersJS client configured with either an Axois REST or socket.io connection.
+ * @param  {string}  name       Name of this client
  * @param  {boolean} useSockets When true, use a socketio connection to the server.
  * @param  {string}  apiUrl     URL of the API server
  * @param  {object}  auth       Optional. Object with keys: path, service, and storageKey (all strings)
@@ -24,6 +25,6 @@ export default function createClient (name, useSockets, apiUrl, auth) {
   }
 
   client.name = name
-  console.log('name', name)
+  client.prefix = name ? name + '::' : ''
   return client
 }

@@ -80,7 +80,7 @@ function createMethodReducer (name, type, idField) {
 }
 
 function reduxifyService (app, actions, reducers, route, name, idField, sortFunctions) {
-  const serviceName = `${app.name}/services/${name.toUpperCase()}_`
+  const serviceName = `${app.prefix}services::${name.toUpperCase()}_`
 
   const service = app.service(route)
   if (!service) throw new Error(`Could not find service ${route}`)

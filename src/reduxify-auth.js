@@ -11,11 +11,11 @@ import { createAction, handleActions } from 'redux-actions'
  */
 export default function reduxifyAuth (app, actions, reducers, authConfig, authInitialize = (data => data)) {
   // ACTION TYPES
-  const AUTHENTICATE = app.name + '/auth/AUTHENTICATE'
-  const LOGOUT = app.name + '/auth/LOGOUT'
+  const AUTHENTICATE = app.prefix + 'auth::AUTHENTICATE'
+  const LOGOUT = app.prefix + 'auth::LOGOUT'
 
   // ACTION CREATORS
-  actions.auth = {
+  actions[authConfig.name] = {
     // Note: action.payload in reducer will have the value of .data below
     authenticate: createAction(
       AUTHENTICATE, (p) => ({
@@ -37,7 +37,7 @@ export default function reduxifyAuth (app, actions, reducers, authConfig, authIn
   }
 
   // REDUCER
-  reducers.auth = handleActions(
+  reducers[authConfig.name] = handleActions(
     {
       [`${AUTHENTICATE}_PENDING`]: (state, action) => {
         return ({

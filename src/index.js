@@ -3,18 +3,12 @@ import createClient from './create-client'
 import reduxifyServices from './reduxify-services'
 import reduxifyAuth from './reduxify-auth'
 import reduxifyUtils from './reduxify-utils'
-import bindServicesWithDispatch from './bind-services'
-
-// let client
-// let services
-// let serviceReducers
-// let serviceNames
-// let servicesBound = false
+import bindServicesWithDispatch from './bind-services
 
 export default class ReactFeathers {
   /**
    * Creates the FeathersJS client and configures auth and services
-   * @param  {boolean}  options.name            Specify a name for this feathers connection (defaults to 'api').
+   * @param  {boolean}  options.name            Specify a name for this feathers connection (defaults to '').
    * @param  {boolean}  options.useSockets      When true, a socket.io connection to the API server will be created
    * @param  {string}   options.apiUrl          URL to the API server
    * @param  {object}   options.serviceNameMap  Object with serviceName as the keys, and remote service-url as the values
@@ -30,7 +24,7 @@ export default class ReactFeathers {
    * @return {object}   An object with all serviceNames mapped to objects with their action creators.
    */
   constructor ({ name, useSockets, apiUrl, serviceNameMap, utilNameMap, authConfig, authInitialize, idField, sortFunctions }) {
-    this.name = name || 'api'
+    this.name = name || ''
     this.client = createClient(this.name, useSockets, apiUrl, authConfig)
 
     this.services = {}
@@ -44,44 +38,21 @@ export default class ReactFeathers {
     }
 
     if (authConfig) {
-      this.serviceNames.unshift('auth')
+      authConfig.name = authConfig.name || 'auth'
+      this.serviceNames.unshift(authConfig.name)
       reduxifyAuth(this.client, this.services, this.serviceReducers, authConfig, authInitialize)
     }
   }
 
   /**
-   * Returns the FeathersJS client instance (after setup() has been called)
-   */
-  getClient () {
-    return this.client
-  }
-
-  /**
-   * Returns the services object, which has all their action-creators (after setup() has been called). If the store
-   * param is passed and the services have not been bound with the store's dispatch function, the binding takes place.
+   * If the services have not been bound with the store's dispatch function,
+   * they are bound.
    * @param  {object} store Redux store
    */
-  getServices (store) {
-    if (store && !this.servicesBound) {
+  bindServices (store) {
+    if (!this.servicesBound) {
       bindServicesWithDispatch(store.dispatch, this.services)
       this.servicesBound = true
     }
-    return this.services
-  }
-
-  /**
-   * Returns reducers for all services in a object where the keys are service names and the values are their reducers
-   */
-  getServiceReducers () {
-    return this.serviceReducers
-  }
-
-  /**
-   * Helper function for redux store. Returns an array with reduxThunk and reduxPromimseMiddleware, which are needed to
-   * process the events from the services. If you are already using these two middleware libraries, you do not need to
-   * use this function.
-   */
-  getMiddleware () {
-    return [ promiseMiddleware() ]
   }
 }
