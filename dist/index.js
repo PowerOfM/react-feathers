@@ -309,6 +309,7 @@ function reduxifyAuth(app, actions, reducers, authConfig) {
   // ACTION TYPES
   var AUTHENTICATE = app.prefix + 'auth::AUTHENTICATE';
   var LOGOUT = app.prefix + 'auth::LOGOUT';
+  var UPDATE_USER = app.prefix + 'auth::UPDATE_USER';
 
   // ACTION CREATORS
   actions[authConfig.name] = {
@@ -320,6 +321,7 @@ function reduxifyAuth(app, actions, reducers, authConfig) {
       };
     }),
     logout: reduxActions.createAction(LOGOUT),
+    updateUser: reduxActions.createAction(UPDATE_USER),
     checkJWT: function checkJWT(jwt) {
       // Try to fetch from local storage
       if (!jwt) {
@@ -393,6 +395,12 @@ function reduxifyAuth(app, actions, reducers, authConfig) {
       token: null,
       // Ignore the result if an authentication has been started
       ignorePendingAuth: state.isLoading
+    });
+  }), defineProperty(_handleActions, UPDATE_USER, function (state, action) {
+    var user = action.payload.user;
+    return _extends({}, state, {
+      admin: user.admin,
+      user: user
     });
   }), _handleActions), {
     errors: null,

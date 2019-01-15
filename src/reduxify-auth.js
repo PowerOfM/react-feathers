@@ -13,6 +13,7 @@ export default function reduxifyAuth (app, actions, reducers, authConfig, authIn
   // ACTION TYPES
   const AUTHENTICATE = app.prefix + 'auth::AUTHENTICATE'
   const LOGOUT = app.prefix + 'auth::LOGOUT'
+  const UPDATE_USER = app.prefix + 'auth::UPDATE_USER'
 
   // ACTION CREATORS
   actions[authConfig.name] = {
@@ -24,6 +25,7 @@ export default function reduxifyAuth (app, actions, reducers, authConfig, authIn
       })
     ),
     logout: createAction(LOGOUT),
+    updateUser: createAction(UPDATE_USER),
     checkJWT: jwt => {
       // Try to fetch from local storage
       if (!jwt) {
@@ -112,6 +114,15 @@ export default function reduxifyAuth (app, actions, reducers, authConfig, authIn
           // Ignore the result if an authentication has been started
           ignorePendingAuth: state.isLoading
         })
+      },
+
+      [UPDATE_USER]: (state, action) => {
+        const user = action.payload.user
+        return {
+          ...state,
+          admin: user.admin,
+          user
+        }
       }
     },
     {
