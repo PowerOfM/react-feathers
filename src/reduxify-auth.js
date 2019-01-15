@@ -117,7 +117,7 @@ export default function reduxifyAuth (app, actions, reducers, authConfig, authIn
       },
 
       [UPDATE_USER]: (state, action) => {
-        const user = action.payload.user
+        const user = action.payload
         return {
           ...state,
           admin: user.admin,

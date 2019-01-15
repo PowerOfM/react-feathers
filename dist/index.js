@@ -397,7 +397,7 @@ function reduxifyAuth(app, actions, reducers, authConfig) {
       ignorePendingAuth: state.isLoading
     });
   }), defineProperty(_handleActions, UPDATE_USER, function (state, action) {
-    var user = action.payload.user;
+    var user = action.payload;
     return _extends({}, state, {
       admin: user.admin,
       user: user
