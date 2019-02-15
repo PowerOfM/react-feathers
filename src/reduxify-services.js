@@ -13,6 +13,7 @@ function createMethodReducer (name, type, idField) {
     error: null,
     loading: false,
     result: null,
+    currentKey: null,
     current: null,
     store: {},
     keys: [],
@@ -39,6 +40,8 @@ function createMethodReducer (name, type, idField) {
         result: result
       }
 
+      // TODO: handle case when result is actually null
+
       switch (type) {
         case 'find':
           ret.current = null
@@ -55,12 +58,14 @@ function createMethodReducer (name, type, idField) {
 
         case 'get':
           ret.current = result
+          ret.currentKey = result[idField]
           ret.store[result[idField]] = result
           break
 
         case 'create':
         case 'patch':
           ret.current = result
+          ret.currentKey = result[idField]
           ret.saved = Date.now()
           ret.store[result[idField]] = result
           break
@@ -117,6 +122,7 @@ function reduxifyService (app, actions, reducers, route, name, idField, sortFunc
         if (state.loading) return state
         return {
           ...state,
+          currentKey: action.payload,
           current: state.store[action.payload]
         }
       },
