@@ -149,7 +149,8 @@ function createMethodReducer(name, type, idField) {
     var action = arguments[1];
     return _extends({}, state, {
       error: action.payload,
-      loading: false
+      loading: false,
+      loadingType: null
     });
   }), defineProperty(_ref, name + '_FULFILLED', function undefined() {
     var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : DEFAULT;
@@ -159,6 +160,7 @@ function createMethodReducer(name, type, idField) {
     var ret = _extends({}, state, {
       error: null,
       loading: false,
+      loadingType: null,
       result: result
 
       // TODO: handle case when result is actually null

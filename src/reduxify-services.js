@@ -31,7 +31,8 @@ function createMethodReducer (name, type, idField) {
     [`${name}_REJECTED`]: (state = DEFAULT, action) => ({
       ...state,
       error: action.payload,
-      loading: false
+      loading: false,
+      loadingType: null
     }),
     [`${name}_FULFILLED`]: (state = DEFAULT, action) => {
       let result = action.payload
@@ -39,6 +40,7 @@ function createMethodReducer (name, type, idField) {
         ...state,
         error: null,
         loading: false,
+        loadingType: null,
         result: result
       }
 

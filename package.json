@@ -1,6 +1,6 @@
 {
   "name": "@ionx/react-feathers",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "Simplified FeathersJS configuration for React apps",
   "author": "Mesbah Mowlavi <m@ionx.ca>",
   "license": "MIT",
