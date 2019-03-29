@@ -12,6 +12,7 @@ function createMethodReducer (name, type, idField) {
   const DEFAULT = {
     error: null,
     loading: false,
+    loadingType: null,
     result: null,
     currentKey: null,
     current: null,
@@ -24,7 +25,8 @@ function createMethodReducer (name, type, idField) {
     [`${name}_PENDING`]: (state = DEFAULT, action) => ({
       ...state,
       error: null,
-      loading: true
+      loading: true,
+      loadingType: type
     }),
     [`${name}_REJECTED`]: (state = DEFAULT, action) => ({
       ...state,
@@ -119,7 +121,7 @@ function reduxifyService (app, actions, reducers, route, name, idField, sortFunc
     createMethodReducer(REMOVE, 'remove', idField),
     {
       [SET_CURRENT]: (state, action) => {
-        if (state.loading) return state
+        // if (state.loading) return state
         return {
           ...state,
           currentKey: action.payload,
@@ -127,7 +129,7 @@ function reduxifyService (app, actions, reducers, route, name, idField, sortFunc
         }
       },
       [SORT]: (state, action) => {
-        if (state.loading) return state
+        // if (state.loading) return state
         let sortBy = action.payload
         if (typeof sortBy === 'string') sortBy = sortFunctions[sortBy]
         return {
@@ -136,7 +138,7 @@ function reduxifyService (app, actions, reducers, route, name, idField, sortFunc
         }
       },
       [RESET]: (state, action) => {
-        if (state.loading) return state
+        // if (state.loading) return state
         return {
           ...state,
           error: null,

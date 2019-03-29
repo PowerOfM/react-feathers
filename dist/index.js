@@ -7,7 +7,6 @@ var axios = _interopDefault(require('axios'));
 var io = _interopDefault(require('socket.io-client'));
 var reduxActions = require('redux-actions');
 var redux = require('redux');
-require('redux-promise-middleware');
 
 /**
  * Creates a FeathersJS client configured with either an Axois REST or socket.io connection.
@@ -129,7 +128,9 @@ function createMethodReducer(name, type, idField) {
   var DEFAULT = {
     error: null,
     loading: false,
+    loadingType: null,
     result: null,
+    currentKey: null,
     current: null,
     store: {},
     keys: [],
@@ -140,7 +141,8 @@ function createMethodReducer(name, type, idField) {
     var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : DEFAULT;
     return _extends({}, state, {
       error: null,
-      loading: true
+      loading: true,
+      loadingType: type
     });
   }), defineProperty(_ref, name + '_REJECTED', function undefined() {
     var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : DEFAULT;
@@ -158,9 +160,10 @@ function createMethodReducer(name, type, idField) {
       error: null,
       loading: false,
       result: result
-    });
 
-    switch (type) {
+      // TODO: handle case when result is actually null
+
+    });switch (type) {
       case 'find':
         ret.current = null;
         if (result && Array.isArray(result)) {
@@ -175,12 +178,14 @@ function createMethodReducer(name, type, idField) {
 
       case 'get':
         ret.current = result;
+        ret.currentKey = result[idField];
         ret.store[result[idField]] = result;
         break;
 
       case 'create':
       case 'patch':
         ret.current = result;
+        ret.currentKey = result[idField];
         ret.saved = Date.now();
         ret.store[result[idField]] = result;
         break;
@@ -238,19 +243,20 @@ function reduxifyService(app, actions, reducers, route, name, idField, sortFunct
   };
 
   reducers[name] = reduxActions.handleActions(Object.assign({}, createMethodReducer(FIND, 'find', idField), createMethodReducer(GET, 'get', idField), createMethodReducer(CREATE, 'create', idField), createMethodReducer(PATCH, 'patch', idField), createMethodReducer(REMOVE, 'remove', idField), (_Object$assign = {}, defineProperty(_Object$assign, SET_CURRENT, function (state, action) {
-    if (state.loading) return state;
+    // if (state.loading) return state
     return _extends({}, state, {
+      currentKey: action.payload,
       current: state.store[action.payload]
     });
   }), defineProperty(_Object$assign, SORT, function (state, action) {
-    if (state.loading) return state;
+    // if (state.loading) return state
     var sortBy = action.payload;
     if (typeof sortBy === 'string') sortBy = sortFunctions[sortBy];
     return _extends({}, state, {
       keys: [].concat(toConsumableArray(state.keys)).sort(sortBy(state.store))
     });
   }), defineProperty(_Object$assign, RESET, function (state, action) {
-    if (state.loading) return state;
+    // if (state.loading) return state
     return _extends({}, state, {
       error: null,
       loading: false,
